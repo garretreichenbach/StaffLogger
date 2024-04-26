@@ -1,0 +1,105 @@
+import groovy.json.JsonSlurper
+
+import java.nio.file.Files
+import java.nio.file.Paths
+
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = 'invictus.earth'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+    maven {
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
+    compileOnly 'net.luckperms:api:5.4'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release.set(targetJavaVersion)
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+def minecraft_version = "1.20.4"
+def semver = minecraft_version.tokenize('.')
+
+def serverDir = file("${project.buildDir}/server")
+def serverJar = file("${serverDir}/paper-${minecraft_version}.jar")
+def pluginsDir = file("${serverDir}/plugins")
+def pluginJar = file("${pluginsDir}/${archivesBaseName}-${version}.jar")
+
+tasks.register('prepare') {
+    group 'server'
+    onlyIf {
+        !serverJar.exists()
+    }
+    doFirst {
+        serverDir.mkdirs()
+        def baseUrl = 'https://papermc.io/api/v2/projects/paper'
+        def builds = new URL("${baseUrl}/version_group/${semver[0]}.${semver[1]}/builds")
+        def latest = new JsonSlurper()
+                .parseText(builds.text)
+                .builds
+                .reverse()
+                .find { it.version == minecraft_version }
+        def fileName = latest.downloads.application.name
+        def jarUrl = new URL("${baseUrl}/versions/${latest.version}/builds/${latest.build}/downloads/${fileName}")
+        serverJar << jarUrl.openStream()
+    }
+}
+
+tasks.register('start', JavaExec) {
+    group 'server'
+    dependsOn 'prepare', 'build'
+
+    doFirst {
+        pluginJar.delete()
+        Files.copy(Paths.get(buildDir.toPath().toString() + "/libs/${archivesBaseName}-${version}.jar"), pluginJar.toPath())
+    }
+
+    classpath = rootProject.files(serverJar)
+    workingDir = serverDir
+    main = 'io.papermc.paperclip.Main'
+    jvmArgs = ['-Ddisable.watchdog=true', '-Dcom.mojang.eula.agree=true']
+    args = ['--nogui']
+    standardInput = System.in
+}

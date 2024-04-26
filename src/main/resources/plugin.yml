@@ -1,0 +1,9 @@
+name: StaffLogger
+version: '${version}'
+main: invictus.earth.stafflogger.StaffLogger
+api-version: '1.20'
+commands:
+  staffmode:
+    description: Toggles Staff Mode, which is required to use admin commands
+    usage: /<command>
+    permission: stafflogger.staffmode.toggle

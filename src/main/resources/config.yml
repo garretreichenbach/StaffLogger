@@ -1,0 +1,2 @@
+staff-roles: ["admin", "developer", "moderator"]
+webhook-url: "[Discord Webhook URL]"
