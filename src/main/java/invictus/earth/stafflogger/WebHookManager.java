@@ -1,5 +1,7 @@
 package invictus.earth.stafflogger;
 
+import java.util.Date;
+
 /**
  * [Description]
  *
@@ -12,6 +14,7 @@ public class WebHookManager {
 		webhook.setUsername("Staff Logger");
 		DiscordWebhook.EmbedObject embed = new DiscordWebhook.EmbedObject();
 		embed.setTitle("Staff Mode Enabled");
+		embed.addField("Time Stamp", String.valueOf(new Date()), true);
 		embed.addField("Player", playerName, true);
 		embed.addField("Reason", reason, false);
 		webhook.addEmbed(embed);
@@ -27,6 +30,7 @@ public class WebHookManager {
 		webhook.setUsername("Staff Logger");
 		DiscordWebhook.EmbedObject embed = new DiscordWebhook.EmbedObject();
 		embed.setTitle("Staff Mode Disabled");
+		embed.addField("Time Stamp", String.valueOf(new Date()), true);
 		embed.addField("Player", playerName, true);
 		webhook.addEmbed(embed);
 		try {
@@ -40,7 +44,8 @@ public class WebHookManager {
 		DiscordWebhook webhook = new DiscordWebhook(getWebHookUrl());
 		webhook.setUsername("Staff Logger");
 		DiscordWebhook.EmbedObject embed = new DiscordWebhook.EmbedObject();
-		embed.setTitle("Staff Mode Command Usage");
+		embed.setTitle("Staff Command Usage");
+		embed.addField("Time Stamp", String.valueOf(new Date()), true);
 		embed.addField("Player", playerName, true);
 		embed.addField("Command", command, true);
 		embed.addField("Arguments", String.join(" ", args), false);

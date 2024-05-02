@@ -38,6 +38,7 @@ public class ConfigManager {
 			exception.printStackTrace();
 		}
 	}
+
 	private static void saveDefaultConfig() {
 		config.options().copyDefaults(true);
 		config.addDefault("staff-roles", new String[] {"Admin", "Developer", "Moderator"});

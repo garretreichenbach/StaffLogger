@@ -15,7 +15,6 @@ public final class StaffLogger extends JavaPlugin {
         ConfigManager.initialize(this);
         EventManager.initialize(this);
         PermissionManager.initialize(this);
-        ConfigManager.initialize(this);
         CommandManager.initialize(this);
         getLogger().log(Level.INFO, "StaffLogger has been enabled.");
     }
